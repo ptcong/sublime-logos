@@ -1,0 +1,102 @@
+%YAML 1.2
+---
+# See http://www.sublimetext.com/docs/3/syntax.html
+name: Logos
+file_extensions:
+  - [xm, xmi, x, mm]
+scope: source.logos
+variables:
+  identifier: '\b[[:alpha:]_][[:alnum:]_]*\b'
+contexts:
+  main:
+    - match: (%(?:ctor|dtor))
+      scope: keyword.source.logos
+      push: block
+
+    - match: (%(?:init|new|end))
+      scope: keyword.source.logos
+      push:
+        - include: main
+
+    - match: (%(?:c|class))\(\s*([\+|-])?({{identifier}})\s*\)
+      captures:
+        1: keyword.source.logos
+        2: keyword.operator
+        3: support.class.name
+      pop: true
+
+    - match: (%config)\(\s*({{identifier}})=(.*?)\s*\);
+      captures:
+        1: keyword.source.logos
+        2: entity.name.function
+        3: variable
+      pop: true
+
+    - match: (%(?:hookf|orig|log))
+      scope: keyword.source.logos
+      push:
+        - match: (?=\s*\()
+        - meta_content_scope: meta.function-call.logos
+          push:
+            - include: scope:source.c#function-call
+      pop: true
+
+    - match: (%property)\s*(\()
+      captures:
+        1: keyword.source.logos
+        2: punctuation.section.scope.begin.objc
+      push:
+        - meta_scope: meta.property-with-attributes.objc
+        - match: '\)'
+          scope: punctuation.section.scope.end.objc
+          pop: true
+        - match: \b(getter|setter|readonly|readwrite|assign|retain|copy|nonatomic|strong|weak)\b
+          scope: keyword.other.property.attribute.objc
+
+    - match: (%property)\b
+      scope: meta.property.objc
+      captures:
+        1: keyword.source.logos
+
+    - match: (%subclass)\s*({{identifier}})\s*:\s*({{identifier}})\s*
+      captures:
+        1: keyword.source.logos
+        2: support.class.name
+        3: entity.other.inherited-class
+      push:
+        - include: scope:source.objc#protocol_list
+        - match: $
+          pop: true
+
+    - match: (%group)(\s*.*)?$
+      captures:
+        1: keyword.source.logos
+        2: support.module.group
+      push: block
+
+    - match: (%hook)(\s*.*)?$
+      captures:
+        1: keyword.source.logos
+        2: support.class.name
+      push: block
+
+    - include: scope:source.c#comments
+    - include: objc_inside_block
+    - include: inherited_languages
+
+    - match: (%orig)
+      scope: keyword.source.logos
+      pop: true
+
+  inherited_languages:
+    - include: Packages/Objective-C/Objective-C.sublime-syntax
+    - include: Packages/C++/C.sublime-syntax
+
+  objc_inside_block:
+    - include: scope:source.objc#preprocessor-objc-structures
+    - include: scope:source.objc#method
+
+  block:
+    - include: main
+
+
