@@ -39,6 +39,8 @@ contexts:
         - meta_content_scope: meta.function-call.logos
           push:
             - include: scope:source.c#function-call
+        - match: (?=\))
+          pop: true
       pop: true
 
     - match: (%property)\s*(\()
